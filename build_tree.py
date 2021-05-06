@@ -92,24 +92,10 @@ def distance_matrix(nodes, tiny_dmatrix, linkage = "complete"):
                 d_matrix[i,j] = max([tiny_dmatrix[i,j] for i in ids_1 for j in ids_2])
             else:
                 d_matrix[i,j] = min([tiny_dmatrix[i,j] for i in ids_1 for j in ids_2])
-#             if isinstance(nodes[i], Tree) and not isinstance(nodes[j], Tree):
-#                 nlist = Tree.node_list(nodes[i])
-#                 ids = [node.data for node in nlist]
-#                 d_matrix[i,j] = max([tiny_dmatrix[i,j] for i in ids])
-# #                 d_matrix[i,j] = min([tiny_dmatrix[i,j] for i in ids for j in ids])
-#             elif isinstance(nodes[j], Tree) and not isinstance(nodes[i], Tree):
-#                 nlist = Tree.node_list(nodes[j])
-#                 ids = [node.data for node in nlist]
-# #                 d_matrix[i,j] = max([tiny_dmatrix[i,j] for i in ids for j in ids])
-#                 d_matrix[i,j] = min([tiny_dmatrix[i,j] for i in ids for j in ids])
-#             elif isinstance(nodes[i], Tree) and isinstance(nodes[j], Tree):
-
-#             else:
-#                 d_matrix[i,j] = tiny_dmatrix[nodes[i].data, nodes[j].data]
     return d_matrix
 
 
-def hclustering(dgrms, homology=1, dist='sw'):
+def hclustering(dgrms, homology=1, dist='sw', linkage="complete"):
     nodes = [Tree(i) for i in range(len(dgrms))]
     new_dgrms = [dgrms[i][homology] for i in dgrms]
     tiny_dmatrix = np.full((len(nodes), len(nodes)), np.nan)
@@ -120,13 +106,8 @@ def hclustering(dgrms, homology=1, dist='sw'):
             else:
                 tiny_dmatrix[i,j] = bottleneck(new_dgrms[nodes[i].data], new_dgrms[nodes[j].data])
             tiny_dmatrix[j,i] = tiny_dmatrix[i,j]
-#     langs = list(dgrms.keys())
-#     langs.append('')
     while len(nodes) > 1:
-#         a =[print(node) for node in nodes]
-#         a = [node.display(langs) for node in nodes]
-        d_matrix = distance_matrix(nodes, tiny_dmatrix)
-#         print(d_matrix)
+        d_matrix = distance_matrix(nodes, tiny_dmatrix, linkage)
         i, j = np.unravel_index(np.nanargmin(d_matrix), d_matrix.shape)
         print("The minimum is ", d_matrix[i,j])
         node = Tree(-1, left=nodes[i], right=nodes[j])
@@ -136,7 +117,7 @@ def hclustering(dgrms, homology=1, dist='sw'):
 
 
 def hclustering_pass_dmatrix(dgrms, tiny_dmatrix, linkage = "complete"):
-    ''' Pass distance matrix, can paralelize pairwise distance computation outside this function
+    ''' Pass distance matrix, can parallelize pairwise distance computation outside this function
     '''
     nodes = [Tree(i) for i in range(len(dgrms))]
     while len(nodes) > 1:
@@ -152,7 +133,6 @@ def hclustering_pass_dmatrix(dgrms, tiny_dmatrix, linkage = "complete"):
 
 def hclustering_all(dgrms, homology=1, dist='sw'):
     nodes = [Tree(i) for i in range(len(dgrms))]
-#     new_dgrms = [dgrms[i][homology] for i in dgrms]
     new_dgrms = [np.vstack((dgrms[i][0], dgrms[i][1])) for i in dgrms]
     tiny_dmatrix = np.full((len(nodes), len(nodes)), np.nan)
     for i in range(len(nodes)):
@@ -165,7 +145,6 @@ def hclustering_all(dgrms, homology=1, dist='sw'):
     langs = list(dgrms.keys())
     langs.append('')
     while len(nodes) > 1:
-#         a =[print(node) for node in nodes]
         a = [node.display(langs) for node in nodes]
         d_matrix = distance_matrix(nodes, tiny_dmatrix, new_dgrms)
         i, j = np.unravel_index(np.nanargmin(d_matrix), d_matrix.shape)
